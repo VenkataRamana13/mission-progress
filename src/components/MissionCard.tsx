@@ -1,10 +1,11 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { Trash2, Plus, Target, Check } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
+import { Trash2, Plus, Target, Check, Edit } from 'lucide-react';
 
 interface Task {
   id: string;
@@ -27,6 +28,7 @@ interface MissionCardProps {
   onDeleteMission: (missionId: string) => void;
   onToggleTask: (missionId: string, taskId: string) => void;
   onDeleteTask: (missionId: string, taskId: string) => void;
+  onUpdateTaskDifficulty: (missionId: string, taskId: string, difficulty: number) => void;
 }
 
 const MissionCard = ({ 
@@ -34,8 +36,12 @@ const MissionCard = ({
   onAddTask, 
   onDeleteMission, 
   onToggleTask, 
-  onDeleteTask 
+  onDeleteTask,
+  onUpdateTaskDifficulty
 }: MissionCardProps) => {
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [editingDifficulty, setEditingDifficulty] = useState([3]);
+
   const completedTasks = mission.tasks.filter(task => task.completed).length;
   const totalTasks = mission.tasks.length;
   const completionPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
@@ -47,6 +53,21 @@ const MissionCard = ({
   const getDifficultyColor = (difficulty: number) => {
     const colors = ['text-green-400', 'text-yellow-400', 'text-orange-400', 'text-red-400', 'text-red-600'];
     return colors[difficulty - 1] || 'text-gray-400';
+  };
+
+  const handleDifficultyEdit = (taskId: string, currentDifficulty: number) => {
+    setEditingTaskId(taskId);
+    setEditingDifficulty([currentDifficulty]);
+  };
+
+  const handleDifficultySave = (taskId: string) => {
+    onUpdateTaskDifficulty(mission.id, taskId, editingDifficulty[0]);
+    setEditingTaskId(null);
+  };
+
+  const handleDifficultyCancel = () => {
+    setEditingTaskId(null);
+    setEditingDifficulty([3]);
   };
 
   return (
@@ -106,10 +127,48 @@ const MissionCard = ({
               <span className={`flex-1 ${task.completed ? 'line-through opacity-60' : ''}`}>
                 {task.title}
               </span>
-              <span className={`text-sm font-mono ${getDifficultyColor(task.difficulty)}`}>
-                {getDifficultyStars(task.difficulty)}
-              </span>
-              {!task.completed && (
+              
+              {editingTaskId === task.id ? (
+                <div className="flex items-center gap-2 min-w-[200px]">
+                  <Slider
+                    value={editingDifficulty}
+                    onValueChange={setEditingDifficulty}
+                    max={5}
+                    min={1}
+                    step={1}
+                    className="flex-1"
+                  />
+                  <span className={`text-xs font-mono ${getDifficultyColor(editingDifficulty[0])}`}>
+                    {getDifficultyStars(editingDifficulty[0])}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDifficultySave(task.id)}
+                    className="text-green-400 hover:text-green-300 hover:bg-green-400/10 p-1"
+                  >
+                    <Check className="w-3 h-3" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleDifficultyCancel}
+                    className="text-red-400 hover:text-red-300 hover:bg-red-400/10 p-1"
+                  >
+                    ×
+                  </Button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => handleDifficultyEdit(task.id, task.difficulty)}
+                  className={`text-sm font-mono ${getDifficultyColor(task.difficulty)} hover:opacity-80 transition-opacity cursor-pointer`}
+                  title="Click to edit difficulty"
+                >
+                  {getDifficultyStars(task.difficulty)}
+                </button>
+              )}
+              
+              {!task.completed && editingTaskId !== task.id && (
                 <Button
                   variant="ghost"
                   size="sm"
@@ -120,14 +179,16 @@ const MissionCard = ({
                   <Check className="w-3 h-3" />
                 </Button>
               )}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onDeleteTask(mission.id, task.id)}
-                className="text-red-400 hover:text-red-300 hover:bg-red-400/10 p-1"
-              >
-                <Trash2 className="w-3 h-3" />
-              </Button>
+              {editingTaskId !== task.id && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onDeleteTask(mission.id, task.id)}
+                  className="text-red-400 hover:text-red-300 hover:bg-red-400/10 p-1"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </Button>
+              )}
             </div>
           ))}
         </div>

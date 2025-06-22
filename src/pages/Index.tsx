@@ -102,6 +102,26 @@ const Index = () => {
     ));
   };
 
+  const updateTaskDifficulty = (missionId: string, taskId: string, difficulty: number) => {
+    setMissions(prev => prev.map(mission => 
+      mission.id === missionId 
+        ? {
+            ...mission,
+            tasks: mission.tasks.map(task => 
+              task.id === taskId 
+                ? { ...task, difficulty }
+                : task
+            )
+          }
+        : mission
+    ));
+    
+    toast({
+      title: "Difficulty Updated",
+      description: "Objective difficulty has been modified.",
+    });
+  };
+
   const totalMissions = missions.length;
   const completedMissions = missions.filter(mission => 
     mission.tasks.length > 0 && mission.tasks.every(task => task.completed)
@@ -194,6 +214,7 @@ const Index = () => {
                 onDeleteMission={deleteMission}
                 onToggleTask={toggleTask}
                 onDeleteTask={deleteTask}
+                onUpdateTaskDifficulty={updateTaskDifficulty}
               />
             ))}
           </div>
