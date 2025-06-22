@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -115,7 +116,7 @@ const MissionCard = ({
             className="h-2 bg-secondary"
           />
           <div className="text-xs text-muted-foreground mt-1">
-            {completedDifficulty}/{totalDifficulty} difficulty points completed ({completedTasks}/{totalTasks} objectives)
+            {completedTasks}/{totalTasks} objectives completed
           </div>
         </div>
 
