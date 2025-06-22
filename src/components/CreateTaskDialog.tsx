@@ -5,23 +5,26 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface CreateTaskDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreateTask: (title: string, difficulty: number) => void;
+  onCreateTask: (title: string, difficulty: number, completed?: boolean) => void;
 }
 
 const CreateTaskDialog = ({ open, onOpenChange, onCreateTask }: CreateTaskDialogProps) => {
   const [title, setTitle] = useState('');
   const [difficulty, setDifficulty] = useState([3]);
+  const [completed, setCompleted] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (title.trim()) {
-      onCreateTask(title.trim(), difficulty[0]);
+      onCreateTask(title.trim(), difficulty[0], completed);
       setTitle('');
       setDifficulty([3]);
+      setCompleted(false);
       onOpenChange(false);
     }
   };
@@ -85,6 +88,16 @@ const CreateTaskDialog = ({ open, onOpenChange, onCreateTask }: CreateTaskDialog
                   </span>
                 </div>
               </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="completed"
+                checked={completed}
+                onCheckedChange={(checked) => setCompleted(checked as boolean)}
+              />
+              <Label htmlFor="completed" className="text-sm font-semibold uppercase tracking-wide">
+                Mark as Completed
+              </Label>
             </div>
             <div className="flex gap-2 pt-4">
               <Button

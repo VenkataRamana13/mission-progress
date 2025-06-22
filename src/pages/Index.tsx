@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, Shield, Target } from 'lucide-react';
@@ -58,12 +57,12 @@ const Index = () => {
     setCreateTaskOpen(true);
   };
 
-  const createTask = (title: string, difficulty: number) => {
+  const createTask = (title: string, difficulty: number, completed: boolean = false) => {
     const newTask: Task = {
       id: Date.now().toString(),
       title,
       difficulty,
-      completed: false,
+      completed,
     };
     
     setMissions(prev => prev.map(mission => 
@@ -73,8 +72,10 @@ const Index = () => {
     ));
     
     toast({
-      title: "Objective Added",
-      description: `New objective has been added to the mission.`,
+      title: completed ? "Completed Objective Added" : "Objective Added",
+      description: completed 
+        ? "New completed objective has been added to the mission."
+        : "New objective has been added to the mission.",
     });
   };
 

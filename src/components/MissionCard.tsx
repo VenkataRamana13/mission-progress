@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { Trash2, Plus, Target } from 'lucide-react';
+import { Trash2, Plus, Target, Check } from 'lucide-react';
 
 interface Task {
   id: string;
@@ -109,6 +109,17 @@ const MissionCard = ({
               <span className={`text-sm font-mono ${getDifficultyColor(task.difficulty)}`}>
                 {getDifficultyStars(task.difficulty)}
               </span>
+              {!task.completed && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onToggleTask(mission.id, task.id)}
+                  className="text-green-400 hover:text-green-300 hover:bg-green-400/10 p-1"
+                  title="Finish Objective"
+                >
+                  <Check className="w-3 h-3" />
+                </Button>
+              )}
               <Button
                 variant="ghost"
                 size="sm"
