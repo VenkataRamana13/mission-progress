@@ -133,6 +133,8 @@ const Index = () => {
     return completedDifficulty === totalDifficulty;
   }).length;
 
+  const totalObjectives = missions.reduce((total, mission) => total + mission.tasks.length, 0);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/80 relative overflow-hidden">
       {/* Background elements */}
@@ -173,9 +175,9 @@ const Index = () => {
             <div className="tactical-border bg-card/50 backdrop-blur-sm">
               <div className="tactical-content p-4 text-center">
                 <div className="text-2xl font-bold text-yellow-400">
-                  {missions.reduce((total, mission) => total + mission.tasks.reduce((sum, task) => sum + task.difficulty, 0), 0)}
+                  {totalObjectives}
                 </div>
-                <div className="text-sm text-muted-foreground uppercase tracking-wide">Total Difficulty Points</div>
+                <div className="text-sm text-muted-foreground uppercase tracking-wide">Total Objectives</div>
               </div>
             </div>
           </div>
