@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -42,9 +41,14 @@ const MissionCard = ({
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [editingDifficulty, setEditingDifficulty] = useState([3]);
 
+  const totalDifficulty = mission.tasks.reduce((sum, task) => sum + task.difficulty, 0);
+  const completedDifficulty = mission.tasks
+    .filter(task => task.completed)
+    .reduce((sum, task) => sum + task.difficulty, 0);
+  const completionPercentage = totalDifficulty > 0 ? Math.round((completedDifficulty / totalDifficulty) * 100) : 0;
+
   const completedTasks = mission.tasks.filter(task => task.completed).length;
   const totalTasks = mission.tasks.length;
-  const completionPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
   const getDifficultyStars = (difficulty: number) => {
     return '★'.repeat(difficulty) + '☆'.repeat(5 - difficulty);
@@ -111,7 +115,7 @@ const MissionCard = ({
             className="h-2 bg-secondary"
           />
           <div className="text-xs text-muted-foreground mt-1">
-            {completedTasks}/{totalTasks} objectives completed
+            {completedDifficulty}/{totalDifficulty} difficulty points completed ({completedTasks}/{totalTasks} objectives)
           </div>
         </div>
 

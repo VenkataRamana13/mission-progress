@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, Shield, Target } from 'lucide-react';
@@ -123,9 +124,14 @@ const Index = () => {
   };
 
   const totalMissions = missions.length;
-  const completedMissions = missions.filter(mission => 
-    mission.tasks.length > 0 && mission.tasks.every(task => task.completed)
-  ).length;
+  const completedMissions = missions.filter(mission => {
+    if (mission.tasks.length === 0) return false;
+    const totalDifficulty = mission.tasks.reduce((sum, task) => sum + task.difficulty, 0);
+    const completedDifficulty = mission.tasks
+      .filter(task => task.completed)
+      .reduce((sum, task) => sum + task.difficulty, 0);
+    return completedDifficulty === totalDifficulty;
+  }).length;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/80 relative overflow-hidden">
@@ -167,9 +173,9 @@ const Index = () => {
             <div className="tactical-border bg-card/50 backdrop-blur-sm">
               <div className="tactical-content p-4 text-center">
                 <div className="text-2xl font-bold text-yellow-400">
-                  {missions.reduce((total, mission) => total + mission.tasks.length, 0)}
+                  {missions.reduce((total, mission) => total + mission.tasks.reduce((sum, task) => sum + task.difficulty, 0), 0)}
                 </div>
-                <div className="text-sm text-muted-foreground uppercase tracking-wide">Total Objectives</div>
+                <div className="text-sm text-muted-foreground uppercase tracking-wide">Total Difficulty Points</div>
               </div>
             </div>
           </div>
