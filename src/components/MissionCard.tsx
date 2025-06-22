@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { Trash2, Plus, Target, Check, Edit } from 'lucide-react';
+import { Trash2, Plus, Target, Check, Eye } from 'lucide-react';
 
 interface Task {
   id: string;
@@ -28,6 +28,9 @@ interface MissionCardProps {
   onToggleTask: (missionId: string, taskId: string) => void;
   onDeleteTask: (missionId: string, taskId: string) => void;
   onUpdateTaskDifficulty: (missionId: string, taskId: string, difficulty: number) => void;
+  onCardClick?: (mission: Mission) => void;
+  showActiveTasks?: boolean;
+  maxActiveTasks?: number;
 }
 
 const MissionCard = ({ 
@@ -36,7 +39,10 @@ const MissionCard = ({
   onDeleteMission, 
   onToggleTask, 
   onDeleteTask,
-  onUpdateTaskDifficulty
+  onUpdateTaskDifficulty,
+  onCardClick,
+  showActiveTasks = false,
+  maxActiveTasks = 2
 }: MissionCardProps) => {
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [editingDifficulty, setEditingDifficulty] = useState([3]);
@@ -74,8 +80,24 @@ const MissionCard = ({
     setEditingDifficulty([3]);
   };
 
+  const activeTasks = mission.tasks.filter(task => !task.completed);
+  const displayTasks = showActiveTasks 
+    ? activeTasks.slice(0, maxActiveTasks).sort((a, b) => a.id.localeCompare(b.id))
+    : mission.tasks;
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't trigger card click if clicking on interactive elements
+    if ((e.target as HTMLElement).closest('button, input, .slider-container')) {
+      return;
+    }
+    onCardClick?.(mission);
+  };
+
   return (
-    <Card className="tactical-border bg-card/90 backdrop-blur-sm">
+    <Card 
+      className="tactical-border bg-card/90 backdrop-blur-sm cursor-pointer hover:bg-card/95 transition-colors"
+      onClick={handleCardClick}
+    >
       <div className="tactical-content p-6">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
@@ -91,14 +113,32 @@ const MissionCard = ({
               </p>
             </div>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onDeleteMission(mission.id)}
-            className="text-red-400 hover:text-red-300 hover:bg-red-400/10"
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
+          <div className="flex items-center gap-2">
+            {onCardClick && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCardClick(mission);
+                }}
+                className="text-primary hover:text-primary/80 hover:bg-primary/10"
+              >
+                <Eye className="w-4 h-4" />
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDeleteMission(mission.id);
+              }}
+              className="text-red-400 hover:text-red-300 hover:bg-red-400/10"
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
 
         <div className="mb-4">
@@ -120,12 +160,15 @@ const MissionCard = ({
         </div>
 
         <div className="space-y-2 mb-4">
-          {mission.tasks.map((task) => (
+          {displayTasks.map((task) => (
             <div key={task.id} className="flex items-center gap-3 p-2 rounded bg-secondary/50">
               <input
                 type="checkbox"
                 checked={task.completed}
-                onChange={() => onToggleTask(mission.id, task.id)}
+                onChange={(e) => {
+                  e.stopPropagation();
+                  onToggleTask(mission.id, task.id);
+                }}
                 className="w-4 h-4 accent-primary"
               />
               <span className={`flex-1 ${task.completed ? 'line-through opacity-60' : ''}`}>
@@ -133,7 +176,7 @@ const MissionCard = ({
               </span>
               
               {editingTaskId === task.id ? (
-                <div className="flex items-center gap-2 min-w-[200px]">
+                <div className="flex items-center gap-2 min-w-[200px] slider-container">
                   <Slider
                     value={editingDifficulty}
                     onValueChange={setEditingDifficulty}
@@ -148,7 +191,10 @@ const MissionCard = ({
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => handleDifficultySave(task.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDifficultySave(task.id);
+                    }}
                     className="text-green-400 hover:text-green-300 hover:bg-green-400/10 p-1"
                   >
                     <Check className="w-3 h-3" />
@@ -156,7 +202,10 @@ const MissionCard = ({
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={handleDifficultyCancel}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDifficultyCancel();
+                    }}
                     className="text-red-400 hover:text-red-300 hover:bg-red-400/10 p-1"
                   >
                     ×
@@ -164,7 +213,10 @@ const MissionCard = ({
                 </div>
               ) : (
                 <button
-                  onClick={() => handleDifficultyEdit(task.id, task.difficulty)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDifficultyEdit(task.id, task.difficulty);
+                  }}
                   className={`text-sm font-mono ${getDifficultyColor(task.difficulty)} hover:opacity-80 transition-opacity cursor-pointer`}
                   title="Click to edit difficulty"
                 >
@@ -176,7 +228,10 @@ const MissionCard = ({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => onDeleteTask(mission.id, task.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteTask(mission.id, task.id);
+                  }}
                   className="text-red-400 hover:text-red-300 hover:bg-red-400/10 p-1"
                 >
                   <Trash2 className="w-3 h-3" />
@@ -184,10 +239,19 @@ const MissionCard = ({
               )}
             </div>
           ))}
+          
+          {showActiveTasks && activeTasks.length > maxActiveTasks && (
+            <div className="text-xs text-muted-foreground text-center py-2">
+              +{activeTasks.length - maxActiveTasks} more objectives...
+            </div>
+          )}
         </div>
 
         <Button
-          onClick={() => onAddTask(mission.id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onAddTask(mission.id);
+          }}
           className="w-full bg-primary/20 border border-primary text-primary hover:bg-primary hover:text-black transition-all duration-200"
           variant="outline"
         >

@@ -5,6 +5,7 @@ import { Plus, Shield, Target } from 'lucide-react';
 import MissionCard from '@/components/MissionCard';
 import CreateMissionDialog from '@/components/CreateMissionDialog';
 import CreateTaskDialog from '@/components/CreateTaskDialog';
+import MissionDetailsPopup from '@/components/MissionDetailsPopup';
 import { useToast } from '@/hooks/use-toast';
 
 interface Task {
@@ -27,6 +28,7 @@ const Index = () => {
   const [createMissionOpen, setCreateMissionOpen] = useState(false);
   const [createTaskOpen, setCreateTaskOpen] = useState(false);
   const [selectedMissionId, setSelectedMissionId] = useState<string>('');
+  const [selectedMissionForDetails, setSelectedMissionForDetails] = useState<Mission | null>(null);
   const { toast } = useToast();
 
   const createMission = (title: string, description: string) => {
@@ -135,6 +137,10 @@ const Index = () => {
 
   const totalObjectives = missions.reduce((total, mission) => total + mission.tasks.length, 0);
 
+  const handleMissionCardClick = (mission: Mission) => {
+    setSelectedMissionForDetails(mission);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/80 relative overflow-hidden">
       {/* Background elements */}
@@ -223,6 +229,9 @@ const Index = () => {
                 onToggleTask={toggleTask}
                 onDeleteTask={deleteTask}
                 onUpdateTaskDifficulty={updateTaskDifficulty}
+                onCardClick={handleMissionCardClick}
+                showActiveTasks={true}
+                maxActiveTasks={2}
               />
             ))}
           </div>
@@ -240,6 +249,15 @@ const Index = () => {
         open={createTaskOpen}
         onOpenChange={setCreateTaskOpen}
         onCreateTask={createTask}
+      />
+
+      <MissionDetailsPopup
+        mission={selectedMissionForDetails}
+        open={!!selectedMissionForDetails}
+        onOpenChange={(open) => !open && setSelectedMissionForDetails(null)}
+        onToggleTask={toggleTask}
+        onDeleteTask={deleteTask}
+        onUpdateTaskDifficulty={updateTaskDifficulty}
       />
     </div>
   );
