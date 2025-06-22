@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -173,17 +172,6 @@ const MissionCard = ({
                 </button>
               )}
               
-              {!task.completed && editingTaskId !== task.id && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onToggleTask(mission.id, task.id)}
-                  className="text-green-400 hover:text-green-300 hover:bg-green-400/10 p-1"
-                  title="Finish Objective"
-                >
-                  <Check className="w-3 h-3" />
-                </Button>
-              )}
               {editingTaskId !== task.id && (
                 <Button
                   variant="ghost"
