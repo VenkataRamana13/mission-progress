@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=CommandDeck
+Comment=Mission Progress Tracking Application
+Exec=/opt/command-deck/run-command-deck.sh
+Icon=/opt/command-deck/commandDesk.png
+Terminal=false
+Categories=Utility;Development;
+Keywords=mission;progress;tracking;
+StartupWMClass=CommandDeck 

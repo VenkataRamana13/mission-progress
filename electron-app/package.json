@@ -1,0 +1,41 @@
+{
+  "name": "commanddeck-electron",
+  "version": "1.0.0",
+  "description": "CommandDeck Desktop Application",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  },
+  "build": {
+    "appId": "com.commanddeck.app",
+    "productName": "CommandDeck",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "../target/command-deck.jar",
+        "to": "command-deck.jar"
+      },
+      {
+        "from": "../commandDesk.png",
+        "to": "commandDesk.png"
+      }
+    ],
+    "linux": {
+      "target": ["AppImage"],
+      "icon": "../commandDesk.png",
+      "category": "Utility"
+    }
+  }
+} 
