@@ -1,0 +1,86 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* MGS V inspired design system */
+
+@layer base {
+  :root {
+    --background: 218 23% 8%;
+    --foreground: 210 40% 98%;
+
+    --card: 218 25% 10%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 218 25% 10%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 24 100% 50%;
+    --primary-foreground: 0 0% 0%;
+
+    --secondary: 217 19% 18%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217 19% 18%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 24 100% 50%;
+    --accent-foreground: 0 0% 0%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217 19% 18%;
+    --input: 217 19% 18%;
+    --ring: 24 100% 50%;
+
+    --radius: 0.25rem;
+
+    --sidebar-background: 218 23% 8%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 24 100% 50%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 217 19% 18%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217 19% 18%;
+    --sidebar-ring: 24 100% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-mono;
+  }
+}
+
+/* Custom MGS V inspired styles */
+@layer components {
+  .tactical-border {
+    @apply relative;
+  }
+  
+  .tactical-border::before {
+    content: '';
+    @apply absolute -inset-0.5 bg-gradient-to-r from-primary/50 to-transparent opacity-75;
+    clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+  }
+  
+  .tactical-border::after {
+    content: '';
+    @apply absolute inset-0 bg-card;
+    clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+  }
+  
+  .tactical-content {
+    @apply relative z-10;
+  }
+
+  .hexagon {
+    clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+  }
+}

@@ -27,12 +27,21 @@ if ! command -v node &> /dev/null; then
     exit 1
 fi
 
+# Build Frontend
+echo "🔨 Building React frontend..."
+cd frontend
+npm install
+npm run build
+cd ..
+
 # Build Spring Boot application
 echo "🔨 Building Java backend..."
+cd backend
 mvn clean package -DskipTests
+cd ..
 
 # Build Electron application
-echo "🔨 Building Electron frontend..."
+echo "🔨 Building Electron application..."
 cd electron-app
 npm install
 npm run build

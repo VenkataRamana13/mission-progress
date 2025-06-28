@@ -71,3 +71,78 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+
+# Mission Progress
+
+A mission progress tracking application with a modern tech stack:
+- Frontend: React + TypeScript + Vite + Tailwind CSS
+- Backend: Spring Boot + Java 17 + SQLite
+- Desktop: Electron
+
+## Project Structure
+
+```
+mission-progress/
+├── frontend/           # React frontend application
+├── backend/           # Spring Boot backend application
+└── electron-app/      # Electron desktop application
+```
+
+## Development Setup
+
+### Prerequisites
+- Node.js 18+ and npm
+- Java 17 JDK
+- Maven 3.8+
+
+### Frontend Development
+```bash
+# Install dependencies
+cd frontend
+npm install
+
+# Start development server
+npm run dev
+```
+
+### Backend Development
+```bash
+# Build and run the backend
+cd backend
+mvn spring-boot:run
+```
+
+### Electron App Development
+```bash
+# Install dependencies
+cd electron-app
+npm install
+
+# Start development
+npm run dev
+```
+
+## Building for Production
+
+### Build Everything
+```bash
+# From root directory
+npm run build
+```
+
+### Build Individual Components
+```bash
+# Build frontend
+npm run build:frontend
+
+# Build backend
+cd backend
+mvn clean package
+
+# Build electron app
+npm run build:electron
+```
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.

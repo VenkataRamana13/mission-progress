@@ -1,9 +1,0 @@
-com/mission/controller/OperationController.class
-com/mission/repository/OperationRepository.class
-com/mission/model/Mission.class
-com/mission/repository/MissionRepository.class
-com/mission/service/MissionService.class
-com/mission/MissionProgressApplication.class
-com/mission/model/Operation.class
-com/mission/service/OperationService.class
-com/mission/controller/MissionController.class
