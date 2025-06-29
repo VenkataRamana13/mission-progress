@@ -1,25 +1,58 @@
 {
-  "name": "mission-progress-electron",
+  "name": "commanddeck",
   "version": "1.0.0",
   "description": "Mission Progress Desktop App",
   "main": "main.js",
+  "author": {
+    "name": "CommandDeck Team",
+    "email": "support@commanddeck.local"
+  },
+  "homepage": "https://github.com/yourusername/commanddeck",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder"
+    "build": "electron-builder",
+    "dist": "electron-builder --linux"
   },
   "build": {
-    "appId": "com.mission.progress",
-    "productName": "Mission Progress",
+    "appId": "com.mission.commanddeck",
+    "productName": "CommandDeck",
     "directories": {
       "output": "dist"
     },
+    "files": [
+      "**/*",
+      "!**/*.ts",
+      "!*.code-workspace",
+      "!LICENSE.md",
+      "!package.json",
+      "!package-lock.json",
+      "!src/",
+      "!e2e/",
+      "!hooks/",
+      "!.angular",
+      "!.vscode",
+      "!.editorconfig",
+      "!.gitignore",
+      "!readme.md"
+    ],
     "linux": {
       "target": ["AppImage", "deb"],
-      "category": "Utility"
+      "category": "Utility",
+      "icon": "assets/icon.svg",
+      "maintainer": "CommandDeck Team <support@commanddeck.local>",
+      "desktop": {
+        "Name": "CommandDeck",
+        "Comment": "Mission and Task Tracker",
+        "Categories": "Utility;Office;ProjectManagement;",
+        "Keywords": "mission;task;tracker;progress;command;deck"
+      }
+    },
+    "deb": {
+      "depends": ["libnotify4", "libxtst6", "libnss3"]
     }
   },
   "devDependencies": {
-    "electron": "^29.0.1",
-    "electron-builder": "^24.12.0"
+    "electron": "29.0.1",
+    "electron-builder": "24.12.0"
   }
 }

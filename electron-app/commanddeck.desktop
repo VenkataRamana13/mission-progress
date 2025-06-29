@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=CommandDeck
+Comment=Mission and Task Tracker
+Exec=/usr/local/bin/commanddeck
+Icon=/usr/share/icons/hicolor/512x512/apps/commanddeck.svg
+Terminal=false
+Type=Application
+Categories=Utility;Office;ProjectManagement;
+Keywords=mission;task;tracker;progress;command;deck; 
