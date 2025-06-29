@@ -1,26 +1,41 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Plus, Shield, Target } from 'lucide-react'
+import { Plus, Shield, Target, ChevronLeft, ChevronRight } from 'lucide-react'
 import MissionCard from '@/components/MissionCard'
 import CreateMissionDialog from '@/components/CreateMissionDialog'
 import CreateObjectiveDialog from '@/components/CreateTaskDialog'
 import MissionDetailsPopup from '@/components/MissionDetailsPopup'
+import EditMissionDialog from '@/components/EditMissionDialog'
 import { useToast } from '@/hooks/use-toast'
-import { missionApi, Mission, Task } from '@/lib/api'
+import { missionApi, Mission, Task, Page, PageRequest } from '@/lib/api'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
 function App() {
   const [createMissionOpen, setCreateMissionOpen] = useState(false)
   const [createObjectiveOpen, setCreateObjectiveOpen] = useState(false)
+  const [editMissionOpen, setEditMissionOpen] = useState(false)
   const [selectedMissionId, setSelectedMissionId] = useState<string>('')
+  const [selectedMissionForEdit, setSelectedMissionForEdit] = useState<Mission | null>(null)
   const [selectedMissionForDetails, setSelectedMissionForDetails] = useState<Mission | null>(null)
+  const [currentPage, setCurrentPage] = useState(0)
+  const [pageSize] = useState(9) // 9 missions per page (3x3 grid)
   const { toast } = useToast()
   const queryClient = useQueryClient()
 
-  // Fetch missions
-  const { data: missions = [], isLoading, error } = useQuery({
-    queryKey: ['missions'],
-    queryFn: missionApi.getAllMissions,
+  // Fetch missions with pagination
+  const { data: missionPage, isLoading, error } = useQuery({
+    queryKey: ['missions', currentPage, pageSize],
+    queryFn: () => missionApi.getAllMissions({ page: currentPage, size: pageSize }),
+  })
+
+  const missions = missionPage?.content || []
+  const totalPages = missionPage?.totalPages || 0
+
+  // Pre-fetch next page
+  useQuery({
+    queryKey: ['missions', currentPage + 1, pageSize],
+    queryFn: () => missionApi.getAllMissions({ page: currentPage + 1, size: pageSize }),
+    enabled: !!(currentPage + 1 < totalPages),
   })
 
   // Create mission mutation
@@ -35,6 +50,7 @@ function App() {
       })
     },
     onError: (error) => {
+      console.error('Create mission error:', error)
       toast({
         title: "Mission Failed",
         description: "Failed to create new mission. Please try again.",
@@ -45,7 +61,7 @@ function App() {
 
   // Delete mission mutation
   const deleteMissionMutation = useMutation({
-    mutationFn: missionApi.deleteMission,
+    mutationFn: (id: number) => missionApi.deleteMission(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['missions'] })
       toast({
@@ -54,11 +70,19 @@ function App() {
         variant: "destructive",
       })
     },
+    onError: (error) => {
+      console.error('Delete mission error:', error)
+      toast({
+        title: "Error",
+        description: "Failed to delete mission. Please try again.",
+        variant: "destructive",
+      })
+    },
   })
 
   // Update mission mutation
   const updateMissionMutation = useMutation({
-    mutationFn: ({ id, mission }: { id: string; mission: Partial<Mission> }) =>
+    mutationFn: ({ id, mission }: { id: number; mission: Partial<Mission> }) =>
       missionApi.updateMission(id, mission),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['missions'] })
@@ -70,7 +94,7 @@ function App() {
   }
 
   const deleteMission = (missionId: string) => {
-    deleteMissionMutation.mutate(missionId)
+    deleteMissionMutation.mutate(parseInt(missionId))
   }
 
   const addObjective = (missionId: string) => {
@@ -180,6 +204,41 @@ function App() {
     setSelectedMissionForDetails(mission)
   }
 
+  const handleEditMission = (mission: Mission) => {
+    setSelectedMissionForEdit(mission)
+    setEditMissionOpen(true)
+  }
+
+  const handleUpdateMission = (title: string, description: string) => {
+    if (!selectedMissionForEdit) return
+
+    updateMissionMutation.mutate({
+      id: selectedMissionForEdit.id,
+      mission: {
+        ...selectedMissionForEdit,
+        title,
+        description
+      }
+    })
+
+    toast({
+      title: "Mission Updated",
+      description: "Mission details have been updated successfully.",
+    })
+  }
+
+  const handleNextPage = () => {
+    if (currentPage + 1 < totalPages) {
+      setCurrentPage(prev => prev + 1)
+    }
+  }
+
+  const handlePrevPage = () => {
+    if (currentPage > 0) {
+      setCurrentPage(prev => prev - 1)
+    }
+  }
+
   if (isLoading) return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/80 flex items-center justify-center">
       <div className="text-primary">Loading missions...</div>
@@ -271,22 +330,52 @@ function App() {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {missions.map((mission) => (
-                <MissionCard
-                  key={mission.id}
-                  mission={mission}
-                  onAddTask={() => addObjective(mission.id)}
-                  onToggleTask={(taskId) => toggleObjective(mission.id, taskId)}
-                  onDeleteTask={(taskId) => deleteObjective(mission.id, taskId)}
-                  onUpdateTaskDifficulty={(taskId, difficulty) =>
-                    updateObjectiveDifficulty(mission.id, taskId, difficulty)
-                  }
-                  onDelete={() => deleteMission(mission.id)}
-                  onClick={() => handleMissionCardClick(mission)}
-                />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                {missions.map((mission) => (
+                  <MissionCard
+                    key={mission.id}
+                    mission={mission}
+                    onAddTask={() => addObjective(mission.id)}
+                    onToggleTask={(taskId) => toggleObjective(mission.id, taskId)}
+                    onDeleteTask={(taskId) => deleteObjective(mission.id, taskId)}
+                    onUpdateTaskDifficulty={(taskId, difficulty) =>
+                      updateObjectiveDifficulty(mission.id, taskId, difficulty)
+                    }
+                    onDelete={() => deleteMission(mission.id)}
+                    onEdit={() => handleEditMission(mission)}
+                    onClick={() => handleMissionCardClick(mission)}
+                  />
+                ))}
+              </div>
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex justify-center items-center gap-4 mt-8">
+                  <Button
+                    variant="outline"
+                    onClick={handlePrevPage}
+                    disabled={currentPage === 0}
+                    className="flex items-center gap-2"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    Previous
+                  </Button>
+                  <span className="text-muted-foreground">
+                    Page {currentPage + 1} of {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    onClick={handleNextPage}
+                    disabled={currentPage + 1 >= totalPages}
+                    className="flex items-center gap-2"
+                  >
+                    Next
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
+            </>
           )}
         </div>
 
@@ -300,6 +389,12 @@ function App() {
           open={createObjectiveOpen}
           onOpenChange={setCreateObjectiveOpen}
           onSubmit={createObjective}
+        />
+        <EditMissionDialog
+          open={editMissionOpen}
+          onOpenChange={setEditMissionOpen}
+          mission={selectedMissionForEdit}
+          onSubmit={handleUpdateMission}
         />
         <MissionDetailsPopup
           mission={selectedMissionForDetails}

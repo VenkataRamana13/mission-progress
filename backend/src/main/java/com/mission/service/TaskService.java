@@ -51,9 +51,16 @@ public class TaskService {
         Task task = taskRepository.findById(taskId)
             .orElseThrow(() -> new EntityNotFoundException("Task not found with id: " + taskId));
         
-        task.setTitle(taskDetails.getTitle());
-        task.setDifficulty(taskDetails.getDifficulty());
-        task.setCompleted(taskDetails.getCompleted());
+        // Only update fields if they are provided in the request
+        if (taskDetails.getTitle() != null) {
+            task.setTitle(taskDetails.getTitle());
+        }
+        if (taskDetails.getDifficulty() != null) {
+            task.setDifficulty(taskDetails.getDifficulty());
+        }
+        if (taskDetails.getCompleted() != null) {
+            task.setCompleted(taskDetails.getCompleted());
+        }
         
         return taskRepository.save(task);
     }

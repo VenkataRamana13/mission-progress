@@ -1,22 +1,14 @@
-# Welcome to your Lovable project
+# Mission Progress Tracking System
 
-## Project info
-
-**URL**: https://lovable.dev/projects/003590fa-64e4-46dc-892e-07fc2800cf64
+A comprehensive mission and task tracking system built with React and modern web technologies.
 
 ## How can I edit this code?
 
 There are several ways of editing your application.
 
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/003590fa-64e4-46dc-892e-07fc2800cf64) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
 **Use your preferred IDE**
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+You can work locally using your own IDE by cloning this repo and pushing changes.
 
 The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
@@ -59,22 +51,6 @@ This project is built with:
 - React
 - shadcn-ui
 - Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/003590fa-64e4-46dc-892e-07fc2800cf64) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
-
-# Mission Progress Tracking System
-
-A comprehensive mission and task tracking system built with Spring Boot, React, and Electron.
 
 ## Features
 
@@ -198,27 +174,3 @@ Logs are stored in:
 ```
 ~/.local/share/command-deck/command-deck.log
 ```
-
-## Building for Production
-
-To build the entire application for production:
-```bash
-./run-command-deck.sh --build --mode prod
-```
-
-This will:
-1. Build the React frontend
-2. Package the Spring Boot backend
-3. Create the Electron desktop application
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.

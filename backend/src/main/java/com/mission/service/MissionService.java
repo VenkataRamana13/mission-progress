@@ -6,13 +6,18 @@ import com.mission.repository.MissionRepository;
 import com.mission.repository.OperationRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 @Service
 public class MissionService {
+    private static final Logger logger = LoggerFactory.getLogger(MissionService.class);
     private final MissionRepository missionRepository;
     private final OperationRepository operationRepository;
 
@@ -22,8 +27,20 @@ public class MissionService {
         this.operationRepository = operationRepository;
     }
 
-    public List<Mission> getAllMissions() {
-        return missionRepository.findAll();
+    public Page<Mission> getAllMissions(Pageable pageable) {
+        logger.info("Fetching missions with pageable: page={}, size={}, sort={}",
+            pageable.getPageNumber(),
+            pageable.getPageSize(),
+            pageable.getSort());
+        
+        Page<Mission> missions = missionRepository.findAll(pageable);
+        
+        logger.info("Found {} missions, total {} missions, total pages {}",
+            missions.getNumberOfElements(),
+            missions.getTotalElements(),
+            missions.getTotalPages());
+        
+        return missions;
     }
 
     public Mission getMission(Long id) {

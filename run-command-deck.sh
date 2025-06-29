@@ -135,7 +135,7 @@ while [[ $# -gt 0 ]]; do
             ;;
         *)
             print_message "$RED" "Unknown option: $1"
-            exit 1
+    exit 1
             ;;
     esac
 done

@@ -3,6 +3,9 @@ package com.mission.controller;
 import com.mission.model.Mission;
 import com.mission.service.MissionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,8 +23,15 @@ public class MissionController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Mission>> getAllMissions() {
-        List<Mission> missions = missionService.getAllMissions();
+    public ResponseEntity<Page<Mission>> getAllMissions(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size,
+        @RequestParam(defaultValue = "createdAt") String sortBy,
+        @RequestParam(defaultValue = "desc") String direction
+    ) {
+        Sort.Direction sortDirection = Sort.Direction.fromString(direction.toUpperCase());
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(sortDirection, sortBy));
+        Page<Mission> missions = missionService.getAllMissions(pageRequest);
         return ResponseEntity.ok(missions);
     }
 

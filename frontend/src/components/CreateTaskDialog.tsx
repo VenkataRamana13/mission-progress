@@ -3,6 +3,26 @@ import * as Dialog from '@radix-ui/react-dialog'
 import { Button } from '@/components/ui/button'
 import { X, Star, StarOff } from 'lucide-react'
 
+// Add difficulty level descriptions
+const getDifficultyLabel = (difficulty: number): string => {
+  switch (difficulty) {
+    case 0:
+      return 'Unknown';
+    case 1:
+      return 'Easy';
+    case 2:
+      return 'Medium';
+    case 3:
+      return 'Challenging';
+    case 4:
+      return 'Hard';
+    case 5:
+      return 'Expert';
+    default:
+      return 'Unknown';
+  }
+};
+
 interface CreateObjectiveDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -79,8 +99,13 @@ const CreateObjectiveDialog: React.FC<CreateObjectiveDialogProps> = ({
                 <label className="text-sm font-medium text-foreground block mb-2">
                   Difficulty Level
                 </label>
-                <div className="flex gap-1">
-                  {renderStars()}
+                <div className="flex items-center gap-3">
+                  <div className="flex gap-1">
+                    {renderStars()}
+                  </div>
+                  <span className="text-sm text-muted-foreground">
+                    {getDifficultyLabel(difficulty)}
+                  </span>
                 </div>
               </div>
 

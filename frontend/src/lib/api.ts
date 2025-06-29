@@ -10,7 +10,7 @@ export interface Task {
 }
 
 export interface Mission {
-  id: string;
+  id: number;
   title: string;
   description: string;
   completed: boolean;
@@ -18,13 +18,45 @@ export interface Mission {
   tasks: Task[];
 }
 
+export interface PageRequest {
+  page: number;
+  size: number;
+  sortBy?: string;
+  direction?: 'asc' | 'desc';
+}
+
+export interface Page<T> {
+  content: T[];
+  totalPages: number;
+  totalElements: number;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
+  empty: boolean;
+}
+
 export const missionApi = {
-  getAllMissions: async (): Promise<Mission[]> => {
-    const response = await axios.get(`${API_BASE_URL}/missions`);
-    return response.data;
+  getAllMissions: async (pageRequest: PageRequest = { page: 0, size: 10 }): Promise<Page<Mission>> => {
+    try {
+      const { page, size, sortBy = 'createdAt', direction = 'desc' } = pageRequest;
+      const response = await axios.get(`${API_BASE_URL}/missions`, {
+        params: {
+          page,
+          size,
+          sortBy,
+          direction,
+        },
+      });
+      console.log('API Response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching missions:', error);
+      throw error;
+    }
   },
 
-  getMission: async (id: string): Promise<Mission> => {
+  getMission: async (id: number): Promise<Mission> => {
     const response = await axios.get(`${API_BASE_URL}/missions/${id}`);
     return response.data;
   },
@@ -36,52 +68,30 @@ export const missionApi = {
     return response.data;
   },
 
-  updateMission: async (id: string, mission: Partial<Mission>): Promise<Mission> => {
+  updateMission: async (id: number, mission: Partial<Mission>): Promise<Mission> => {
     const response = await axios.put(`${API_BASE_URL}/missions/${id}`, mission);
     return response.data;
   },
 
-  deleteMission: async (id: string): Promise<void> => {
-    // Convert string ID to number since backend expects a Long
-    const numericId = parseInt(id);
-    if (isNaN(numericId)) {
-      throw new Error('Invalid mission ID');
-    }
-    await axios.delete(`${API_BASE_URL}/missions/${numericId}`);
+  deleteMission: async (id: number): Promise<void> => {
+    await axios.delete(`${API_BASE_URL}/missions/${id}`);
   },
 
   // Task-related endpoints
-  addTask: async (missionId: string, task: Omit<Task, 'id'>): Promise<Task> => {
-    // Convert string ID to number since backend expects a Long
-    const numericId = parseInt(missionId);
-    if (isNaN(numericId)) {
-      throw new Error('Invalid mission ID');
-    }
-    const response = await axios.post(`${API_BASE_URL}/missions/${numericId}/tasks`, task);
+  addTask: async (missionId: number, task: Omit<Task, 'id'>): Promise<Task> => {
+    const response = await axios.post(`${API_BASE_URL}/missions/${missionId}/tasks`, task);
     return response.data;
   },
 
-  updateTask: async (missionId: string, taskId: string, task: Partial<Task>): Promise<Task> => {
-    // Convert string IDs to numbers since backend expects Longs
-    const numericMissionId = parseInt(missionId);
-    const numericTaskId = parseInt(taskId);
-    if (isNaN(numericMissionId) || isNaN(numericTaskId)) {
-      throw new Error('Invalid mission or task ID');
-    }
+  updateTask: async (missionId: number, taskId: string, task: Partial<Task>): Promise<Task> => {
     const response = await axios.put(
-      `${API_BASE_URL}/missions/${numericMissionId}/tasks/${numericTaskId}`,
+      `${API_BASE_URL}/missions/${missionId}/tasks/${taskId}`,
       task
     );
     return response.data;
   },
 
-  deleteTask: async (missionId: string, taskId: string): Promise<void> => {
-    // Convert string IDs to numbers since backend expects Longs
-    const numericMissionId = parseInt(missionId);
-    const numericTaskId = parseInt(taskId);
-    if (isNaN(numericMissionId) || isNaN(numericTaskId)) {
-      throw new Error('Invalid mission or task ID');
-    }
-    await axios.delete(`${API_BASE_URL}/missions/${numericMissionId}/tasks/${numericTaskId}`);
+  deleteTask: async (missionId: number, taskId: string): Promise<void> => {
+    await axios.delete(`${API_BASE_URL}/missions/${missionId}/tasks/${taskId}`);
   }
 }; 
