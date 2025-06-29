@@ -10,6 +10,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/operations")
+@CrossOrigin(origins = "http://localhost:5173")
 public class OperationController {
     private final OperationService operationService;
 
@@ -19,25 +20,27 @@ public class OperationController {
     }
 
     @GetMapping
-    public List<Operation> getAllOperations() {
-        return operationService.getAllOperations();
+    public ResponseEntity<List<Operation>> getAllOperations() {
+        List<Operation> operations = operationService.getAllOperations();
+        return ResponseEntity.ok(operations);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Operation> getOperationById(@PathVariable Long id) {
-        return operationService.getOperationById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<Operation> getOperation(@PathVariable Long id) {
+        Operation operation = operationService.getOperation(id);
+        return ResponseEntity.ok(operation);
     }
 
     @PostMapping
-    public Operation createOperation(@RequestBody Operation operation) {
-        return operationService.createOperation(operation);
+    public ResponseEntity<Operation> createOperation(@RequestBody Operation operation) {
+        Operation createdOperation = operationService.createOperation(operation);
+        return ResponseEntity.ok(createdOperation);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Operation> updateOperation(@PathVariable Long id, @RequestBody Operation operation) {
-        return ResponseEntity.ok(operationService.updateOperation(id, operation));
+        Operation updatedOperation = operationService.updateOperation(id, operation);
+        return ResponseEntity.ok(updatedOperation);
     }
 
     @DeleteMapping("/{id}")

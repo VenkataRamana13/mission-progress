@@ -1,187 +1,169 @@
 #!/bin/bash
 
-# Exit on error
-set -e
-
-# Script location
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-cd "$SCRIPT_DIR"
-
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+# Default values
+MODE="dev"
+BUILD=false
+FRONTEND_PID=""
+BACKEND_PID=""
+ELECTRON_PID=""
+
 # Function to print colored output
-print_status() {
-    echo -e "${GREEN}==>${NC} $1"
-}
-
-print_warning() {
-    echo -e "${YELLOW}WARNING:${NC} $1"
-}
-
-print_error() {
-    echo -e "${RED}ERROR:${NC} $1"
+print_message() {
+    local color=$1
+    local message=$2
+    echo -e "${color}${message}${NC}"
 }
 
 # Function to check if a command exists
-command_exists() {
-    command -v "$1" >/dev/null 2>&1
-}
-
-# Check prerequisites
-check_prerequisites() {
-    local missing_deps=0
-
-    if ! command_exists java; then
-        print_error "Java not found. Please install Java 17 or later."
-        missing_deps=1
-    fi
-
-    if ! command_exists mvn; then
-        print_error "Maven not found. Please install Maven."
-        missing_deps=1
-    fi
-
-    if ! command_exists node; then
-        print_error "Node.js not found. Please install Node.js."
-        missing_deps=1
-    fi
-
-    if ! command_exists npm; then
-        print_error "npm not found. Please install npm."
-        missing_deps=1
-    fi
-
-    if [ $missing_deps -eq 1 ]; then
+check_command() {
+    if ! command -v $1 &> /dev/null; then
+        print_message "$RED" "Error: $1 is required but not installed."
         exit 1
     fi
 }
 
+# Function to check prerequisites
+check_prerequisites() {
+    print_message "$BLUE" "Checking prerequisites..."
+    check_command "node"
+    check_command "npm"
+    check_command "java"
+    check_command "mvn"
+}
+
 # Function to build the project
 build_project() {
-    # Build backend
-    print_status "Building backend..."
-    cd "$SCRIPT_DIR/backend"
-    mvn clean package -DskipTests
-
+    print_message "$BLUE" "Building project..."
+    
     # Build frontend
-    print_status "Building frontend..."
-    cd "$SCRIPT_DIR/frontend"
+    print_message "$YELLOW" "Building frontend..."
+    cd frontend
     npm install
     npm run build
-
+    cd ..
+    
+    # Build backend
+    print_message "$YELLOW" "Building backend..."
+    cd backend
+    mvn clean package
+    cd ..
+    
     # Build electron app
-    print_status "Building electron app..."
-    cd "$SCRIPT_DIR/electron-app"
+    print_message "$YELLOW" "Building electron app..."
+    cd electron-app
     npm install
-    npm run build
-
-    cd "$SCRIPT_DIR"
+    cd ..
 }
 
-# Function to run in development mode
-run_dev() {
-    print_status "Starting in development mode..."
+# Function to start the development servers
+start_dev() {
+    # Start frontend
+    print_message "$YELLOW" "Starting frontend development server..."
+    cd frontend
+    npm run dev &
+    FRONTEND_PID=$!
+    cd ..
     
     # Start backend
-    cd "$SCRIPT_DIR/backend"
+    print_message "$YELLOW" "Starting backend development server..."
+    cd backend
     mvn spring-boot:run &
     BACKEND_PID=$!
-
-    # Wait for backend to start
-    sleep 5
-
+    cd ..
+    
     # Start electron app
-    cd "$SCRIPT_DIR/electron-app"
-    npm run dev &
+    print_message "$YELLOW" "Starting electron app..."
+    cd electron-app
+    NODE_ENV=development npm start &
     ELECTRON_PID=$!
-
-    # Function to cleanup processes on exit
-    cleanup() {
-        print_status "Shutting down..."
-        kill $BACKEND_PID 2>/dev/null
-        kill $ELECTRON_PID 2>/dev/null
-        exit 0
-    }
-
-    # Set up trap for cleanup
-    trap cleanup SIGINT SIGTERM
-
-    # Wait for either process to exit
-    wait $BACKEND_PID $ELECTRON_PID
+    cd ..
 }
 
-# Function to run in production mode
-run_prod() {
-    print_status "Starting in production mode..."
-    
+# Function to start production servers
+start_prod() {
     # Start backend
-    cd "$SCRIPT_DIR/backend"
-    java -jar target/command-deck-backend.jar &
+    print_message "$YELLOW" "Starting backend server..."
+    cd backend
+    java -jar target/*.jar &
     BACKEND_PID=$!
-
-    # Wait for backend to start
-    sleep 5
-
+    cd ..
+    
     # Start electron app
-    cd "$SCRIPT_DIR/electron-app"
-    npm start &
+    print_message "$YELLOW" "Starting electron app..."
+    cd electron-app
+    NODE_ENV=production npm start &
     ELECTRON_PID=$!
+    cd ..
+}
 
-    # Function to cleanup processes on exit
-    cleanup() {
-        print_status "Shutting down..."
+# Function to cleanup processes
+cleanup() {
+    print_message "$YELLOW" "Cleaning up processes..."
+    
+    if [ ! -z "$FRONTEND_PID" ]; then
+        kill $FRONTEND_PID 2>/dev/null
+    fi
+    if [ ! -z "$BACKEND_PID" ]; then
         kill $BACKEND_PID 2>/dev/null
+    fi
+    if [ ! -z "$ELECTRON_PID" ]; then
         kill $ELECTRON_PID 2>/dev/null
-        exit 0
-    }
-
-    # Set up trap for cleanup
-    trap cleanup SIGINT SIGTERM
-
-    # Wait for either process to exit
-    wait $BACKEND_PID $ELECTRON_PID
+    fi
+    
+    print_message "$GREEN" "Cleanup complete"
+    exit 0
 }
 
 # Parse command line arguments
-MODE="dev"
-BUILD=0
-
 while [[ $# -gt 0 ]]; do
     case $1 in
-        --prod)
-            MODE="prod"
+        --mode)
+            MODE="$2"
+            shift
             shift
             ;;
         --build)
-            BUILD=1
+            BUILD=true
             shift
             ;;
-        --help)
-            echo "Usage: $0 [--prod] [--build]"
-            echo "  --prod   Run in production mode"
-            echo "  --build  Build the project before running"
-            exit 0
-            ;;
         *)
-            print_error "Unknown option: $1"
+            print_message "$RED" "Unknown option: $1"
             exit 1
             ;;
     esac
 done
 
-# Main execution
+# Set up cleanup trap
+trap cleanup SIGINT SIGTERM
+
+# Check prerequisites
 check_prerequisites
 
-if [ $BUILD -eq 1 ]; then
+# Build if requested
+if [ "$BUILD" = true ]; then
     build_project
 fi
 
-if [ "$MODE" = "prod" ]; then
-    run_prod
+# Start servers based on mode
+if [ "$MODE" = "dev" ]; then
+    print_message "$GREEN" "Starting in development mode..."
+    start_dev
+elif [ "$MODE" = "prod" ]; then
+    print_message "$GREEN" "Starting in production mode..."
+    start_prod
 else
-    run_dev
-fi 
+    print_message "$RED" "Invalid mode: $MODE"
+    exit 1
+fi
+
+print_message "$GREEN" "All services started. Press Ctrl+C to stop."
+
+# Wait for all background processes
+wait 

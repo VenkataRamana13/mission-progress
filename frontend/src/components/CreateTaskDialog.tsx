@@ -1,125 +1,130 @@
+import React, { useState } from 'react'
+import * as Dialog from '@radix-ui/react-dialog'
+import { Button } from '@/components/ui/button'
+import { X, Star, StarOff } from 'lucide-react'
 
-import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Slider } from '@/components/ui/slider';
-import { Checkbox } from '@/components/ui/checkbox';
-
-interface CreateTaskDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onCreateTask: (title: string, difficulty: number, completed?: boolean) => void;
+interface CreateObjectiveDialogProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onSubmit: (title: string, difficulty: number, completed?: boolean) => void
 }
 
-const CreateTaskDialog = ({ open, onOpenChange, onCreateTask }: CreateTaskDialogProps) => {
-  const [title, setTitle] = useState('');
-  const [difficulty, setDifficulty] = useState([3]);
-  const [completed, setCompleted] = useState(false);
+const CreateObjectiveDialog: React.FC<CreateObjectiveDialogProps> = ({
+  open,
+  onOpenChange,
+  onSubmit,
+}) => {
+  const [title, setTitle] = useState('')
+  const [difficulty, setDifficulty] = useState(3)
+  const [completed, setCompleted] = useState(false)
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (title.trim()) {
-      onCreateTask(title.trim(), difficulty[0], completed);
-      setTitle('');
-      setDifficulty([3]);
-      setCompleted(false);
-      onOpenChange(false);
-    }
-  };
+    e.preventDefault()
+    onSubmit(title, difficulty, completed)
+    setTitle('')
+    setDifficulty(3)
+    setCompleted(false)
+    onOpenChange(false)
+  }
 
-  const getDifficultyLabel = (value: number) => {
-    const labels = ['Trivial', 'Easy', 'Moderate', 'Hard', 'Extreme'];
-    return labels[value - 1] || 'Unknown';
-  };
-
-  const getDifficultyStars = (value: number) => {
-    return '★'.repeat(value) + '☆'.repeat(5 - value);
-  };
-
-  const getDifficultyColor = (value: number) => {
-    const colors = ['text-green-400', 'text-yellow-400', 'text-orange-400', 'text-red-400', 'text-red-600'];
-    return colors[value - 1] || 'text-gray-400';
-  };
+  const renderStars = () => {
+    return Array.from({ length: 5 }).map((_, index) => (
+      <button
+        key={index}
+        type="button"
+        onClick={(e) => {
+          e.preventDefault()
+          setDifficulty(index + 1)
+        }}
+        className="focus:outline-none"
+      >
+        {index < difficulty ? (
+          <Star className="w-6 h-6 text-yellow-400 fill-yellow-400" />
+        ) : (
+          <StarOff className="w-6 h-6 text-muted-foreground" />
+        )}
+      </button>
+    ))
+  }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="tactical-border bg-card/95 backdrop-blur-md">
-        <div className="tactical-content">
-          <DialogHeader>
-            <DialogTitle className="text-primary uppercase tracking-wider text-xl">
-              Create New Objective
-            </DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-6 mt-4">
-            <div>
-              <Label htmlFor="title" className="text-sm font-semibold uppercase tracking-wide">
-                Objective Description
-              </Label>
-              <Input
-                id="title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Enter objective details..."
-                className="mt-1 bg-secondary/50 border-primary/30 focus:border-primary"
-                required
-              />
-            </div>
-            <div>
-              <Label className="text-sm font-semibold uppercase tracking-wide">
-                Difficulty Assessment
-              </Label>
-              <div className="mt-3 space-y-3">
-                <Slider
-                  value={difficulty}
-                  onValueChange={setDifficulty}
-                  max={5}
-                  min={1}
-                  step={1}
-                  className="w-full"
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100]" />
+        <Dialog.Content className="fixed left-[50%] top-[50%] max-h-[85vh] w-[90vw] max-w-[500px] translate-x-[-50%] translate-y-[-50%] rounded-lg bg-background p-6 shadow-lg z-[100]">
+          <Dialog.Title className="text-xl font-bold text-primary mb-4">
+            Add New Objective
+          </Dialog.Title>
+          
+          <form onSubmit={handleSubmit}>
+            <div className="space-y-4">
+              <div>
+                <label
+                  htmlFor="title"
+                  className="text-sm font-medium text-foreground block mb-2"
+                >
+                  Objective Title
+                </label>
+                <input
+                  id="title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="w-full px-3 py-2 rounded-md border bg-background text-foreground"
+                  placeholder="Enter objective title"
+                  required
                 />
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">
-                    {getDifficultyLabel(difficulty[0])}
-                  </span>
-                  <span className={`font-mono text-lg ${getDifficultyColor(difficulty[0])}`}>
-                    {getDifficultyStars(difficulty[0])}
-                  </span>
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium text-foreground block mb-2">
+                  Difficulty Level
+                </label>
+                <div className="flex gap-1">
+                  {renderStars()}
                 </div>
               </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  id="completed"
+                  type="checkbox"
+                  checked={completed}
+                  onChange={(e) => setCompleted(e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-300"
+                />
+                <label
+                  htmlFor="completed"
+                  className="text-sm font-medium text-foreground"
+                >
+                  Mark as completed
+                </label>
+              </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="completed"
-                checked={completed}
-                onCheckedChange={(checked) => setCompleted(checked as boolean)}
-              />
-              <Label htmlFor="completed" className="text-sm font-semibold uppercase tracking-wide">
-                Mark as Completed
-              </Label>
-            </div>
-            <div className="flex gap-2 pt-4">
+
+            <div className="mt-6 flex justify-end gap-3">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
-                className="flex-1 border-secondary text-muted-foreground hover:bg-secondary"
               >
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                className="flex-1 bg-primary text-black hover:bg-primary/90"
-              >
-                Deploy Objective
-              </Button>
+              <Button type="submit">Add Objective</Button>
             </div>
           </form>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-};
 
-export default CreateTaskDialog;
+          <Dialog.Close asChild>
+            <button
+              className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
+              aria-label="Close"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </Dialog.Close>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  )
+}
+
+export default CreateObjectiveDialog

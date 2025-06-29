@@ -72,76 +72,152 @@ To connect a domain, navigate to Project > Settings > Domains and click Connect 
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
 
-# Mission Progress
+# Mission Progress Tracking System
 
-A mission progress tracking application with a modern tech stack:
-- Frontend: React + TypeScript + Vite + Tailwind CSS
-- Backend: Spring Boot + Java 17 + SQLite
-- Desktop: Electron
+A comprehensive mission and task tracking system built with Spring Boot, React, and Electron.
+
+## Features
+
+- Mission management with nested tasks
+- Real-time progress tracking
+- Beautiful and modern UI with dark mode support
+- Cross-platform desktop application
+- Secure data storage with SQLite
 
 ## Project Structure
 
 ```
 mission-progress/
-├── frontend/           # React frontend application
-├── backend/           # Spring Boot backend application
-└── electron-app/      # Electron desktop application
+├── frontend/           # React/TypeScript/Vite frontend
+├── backend/           # Spring Boot backend
+├── electron-app/      # Electron wrapper
+└── run-command-deck.sh # Main run script
 ```
 
-## Development Setup
+## Prerequisites
 
-### Prerequisites
-- Node.js 18+ and npm
-- Java 17 JDK
-- Maven 3.8+
+- Java 17 or later
+- Node.js 18 or later
+- npm 9 or later
+- Maven 3.8 or later
 
-### Frontend Development
+## Quick Start
+
+1. Clone the repository:
 ```bash
-# Install dependencies
+git clone https://github.com/yourusername/mission-progress.git
+cd mission-progress
+```
+
+2. Make the run script executable:
+```bash
+chmod +x run-command-deck.sh
+```
+
+3. Build the project:
+```bash
+./run-command-deck.sh --build
+```
+
+4. Run in development mode:
+```bash
+./run-command-deck.sh --mode dev
+```
+
+Or run in production mode:
+```bash
+./run-command-deck.sh --mode prod
+```
+
+## Development
+
+### Frontend (React/TypeScript/Vite)
+
+The frontend is built with:
+- React 18
+- TypeScript
+- Vite
+- TailwindCSS
+- Radix UI components
+- React Query for data fetching
+
+To run the frontend separately:
+```bash
 cd frontend
 npm install
-
-# Start development server
 npm run dev
 ```
 
-### Backend Development
+### Backend (Spring Boot)
+
+The backend uses:
+- Spring Boot 3.2
+- SQLite database
+- JPA/Hibernate
+- RESTful API design
+
+To run the backend separately:
 ```bash
-# Build and run the backend
 cd backend
 mvn spring-boot:run
 ```
 
-### Electron App Development
+### Electron App
+
+The Electron app wraps the frontend for desktop use:
 ```bash
-# Install dependencies
 cd electron-app
 npm install
+npm start
+```
 
-# Start development
-npm run dev
+## API Endpoints
+
+### Missions
+
+- `GET /api/missions` - Get all missions
+- `GET /api/missions/{id}` - Get a specific mission
+- `POST /api/missions` - Create a new mission
+- `PUT /api/missions/{id}` - Update a mission
+- `DELETE /api/missions/{id}` - Delete a mission
+
+### Tasks
+
+- `POST /api/missions/{missionId}/tasks` - Add a task to a mission
+- `PUT /api/missions/{missionId}/tasks/{taskId}` - Update a task
+- `DELETE /api/missions/{missionId}/tasks/{taskId}` - Delete a task
+
+## Data Storage
+
+The application stores its data in:
+```
+~/.local/share/command-deck/command-deck.db
+```
+
+Logs are stored in:
+```
+~/.local/share/command-deck/command-deck.log
 ```
 
 ## Building for Production
 
-### Build Everything
+To build the entire application for production:
 ```bash
-# From root directory
-npm run build
+./run-command-deck.sh --build --mode prod
 ```
 
-### Build Individual Components
-```bash
-# Build frontend
-npm run build:frontend
+This will:
+1. Build the React frontend
+2. Package the Spring Boot backend
+3. Create the Electron desktop application
 
-# Build backend
-cd backend
-mvn clean package
+## Contributing
 
-# Build electron app
-npm run build:electron
-```
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
 
 ## License
 

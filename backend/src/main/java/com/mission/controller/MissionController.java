@@ -10,6 +10,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/missions")
+@CrossOrigin(origins = "http://localhost:5173")
 public class MissionController {
     private final MissionService missionService;
 
@@ -19,25 +20,27 @@ public class MissionController {
     }
 
     @GetMapping
-    public List<Mission> getAllMissions() {
-        return missionService.getAllMissions();
+    public ResponseEntity<List<Mission>> getAllMissions() {
+        List<Mission> missions = missionService.getAllMissions();
+        return ResponseEntity.ok(missions);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Mission> getMissionById(@PathVariable Long id) {
-        return missionService.getMissionById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<Mission> getMission(@PathVariable Long id) {
+        Mission mission = missionService.getMission(id);
+        return ResponseEntity.ok(mission);
     }
 
-    @PostMapping
-    public Mission createMission(@RequestBody Mission mission) {
-        return missionService.createMission(mission);
+    @PostMapping("/operation/{operationId}")
+    public ResponseEntity<Mission> createMission(@PathVariable Long operationId, @RequestBody Mission mission) {
+        Mission createdMission = missionService.createMission(operationId, mission);
+        return ResponseEntity.ok(createdMission);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Mission> updateMission(@PathVariable Long id, @RequestBody Mission mission) {
-        return ResponseEntity.ok(missionService.updateMission(id, mission));
+        Mission updatedMission = missionService.updateMission(id, mission);
+        return ResponseEntity.ok(updatedMission);
     }
 
     @DeleteMapping("/{id}")

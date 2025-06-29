@@ -1,88 +1,100 @@
-
-import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import React, { useState } from 'react'
+import * as Dialog from '@radix-ui/react-dialog'
+import { Button } from '@/components/ui/button'
+import { X } from 'lucide-react'
 
 interface CreateMissionDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onCreateMission: (title: string, description: string) => void;
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onSubmit: (title: string, description: string) => void
 }
 
-const CreateMissionDialog = ({ open, onOpenChange, onCreateMission }: CreateMissionDialogProps) => {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+const CreateMissionDialog: React.FC<CreateMissionDialogProps> = ({
+  open,
+  onOpenChange,
+  onSubmit,
+}) => {
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (title.trim()) {
-      onCreateMission(title.trim(), description.trim());
-      setTitle('');
-      setDescription('');
-      onOpenChange(false);
-    }
-  };
+    e.preventDefault()
+    onSubmit(title, description)
+    setTitle('')
+    setDescription('')
+    onOpenChange(false)
+  }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="tactical-border bg-card/95 backdrop-blur-md">
-        <div className="tactical-content">
-          <DialogHeader>
-            <DialogTitle className="text-primary uppercase tracking-wider text-xl">
-              Initialize New Operation
-            </DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-            <div>
-              <Label htmlFor="title" className="text-sm font-semibold uppercase tracking-wide">
-                Operation Codename
-              </Label>
-              <Input
-                id="title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Enter operation name..."
-                className="mt-1 bg-secondary/50 border-primary/30 focus:border-primary"
-                required
-              />
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100]" />
+        <Dialog.Content className="fixed left-[50%] top-[50%] max-h-[85vh] w-[90vw] max-w-[500px] translate-x-[-50%] translate-y-[-50%] rounded-lg bg-background p-6 shadow-lg z-[100]">
+          <Dialog.Title className="text-xl font-bold text-primary mb-4">
+            Deploy New Mission
+          </Dialog.Title>
+          
+          <form onSubmit={handleSubmit}>
+            <div className="space-y-4">
+              <div>
+                <label
+                  htmlFor="title"
+                  className="text-sm font-medium text-foreground block mb-2"
+                >
+                  Mission Title
+                </label>
+                <input
+                  id="title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="w-full px-3 py-2 rounded-md border bg-background text-foreground"
+                  placeholder="Enter mission title"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label
+                  htmlFor="description"
+                  className="text-sm font-medium text-foreground block mb-2"
+                >
+                  Mission Description
+                </label>
+                <textarea
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="w-full px-3 py-2 rounded-md border bg-background text-foreground min-h-[100px]"
+                  placeholder="Enter mission description"
+                  required
+                />
+              </div>
             </div>
-            <div>
-              <Label htmlFor="description" className="text-sm font-semibold uppercase tracking-wide">
-                Mission Brief
-              </Label>
-              <Textarea
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Enter mission description..."
-                className="mt-1 bg-secondary/50 border-primary/30 focus:border-primary resize-none"
-                rows={3}
-              />
-            </div>
-            <div className="flex gap-2 pt-4">
+
+            <div className="mt-6 flex justify-end gap-3">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
-                className="flex-1 border-secondary text-muted-foreground hover:bg-secondary"
               >
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                className="flex-1 bg-primary text-black hover:bg-primary/90"
-              >
-                Deploy Operation
-              </Button>
+              <Button type="submit">Deploy Mission</Button>
             </div>
           </form>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-};
 
-export default CreateMissionDialog;
+          <Dialog.Close asChild>
+            <button
+              className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
+              aria-label="Close"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </Dialog.Close>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  )
+}
+
+export default CreateMissionDialog
