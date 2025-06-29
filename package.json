@@ -14,6 +14,8 @@
     "build": "npm run build:frontend && npm run build:electron",
     "lint": "npm run lint:frontend && npm run lint:electron",
     "lint:frontend": "cd frontend && npm run lint",
-    "lint:electron": "cd electron-app && npm run lint"
+    "lint:electron": "cd electron-app && npm run lint", 
+    "dev": "vite",
+    "build:dev": "vite build --mode development"
   }
 } 
