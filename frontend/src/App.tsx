@@ -6,6 +6,7 @@ import CreateMissionDialog from '@/components/CreateMissionDialog'
 import CreateObjectiveDialog from '@/components/CreateTaskDialog'
 import MissionDetailsPopup from '@/components/MissionDetailsPopup'
 import EditMissionDialog from '@/components/EditMissionDialog'
+import EditObjectiveDialog from './components/EditObjectiveDialog'
 import { useToast } from '@/hooks/use-toast'
 import { missionApi, Mission, Task, Page, PageRequest } from '@/lib/api'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -14,9 +15,11 @@ function App() {
   const [createMissionOpen, setCreateMissionOpen] = useState(false)
   const [createObjectiveOpen, setCreateObjectiveOpen] = useState(false)
   const [editMissionOpen, setEditMissionOpen] = useState(false)
+  const [editObjectiveOpen, setEditObjectiveOpen] = useState(false)
   const [selectedMissionId, setSelectedMissionId] = useState<string>('')
   const [selectedMissionForEdit, setSelectedMissionForEdit] = useState<Mission | null>(null)
   const [selectedMissionForDetails, setSelectedMissionForDetails] = useState<Mission | null>(null)
+  const [selectedObjective, setSelectedObjective] = useState<Task | null>(null)
   const [currentPage, setCurrentPage] = useState(0)
   const [pageSize] = useState(9) // 9 missions per page (3x3 grid)
   const { toast } = useToast()
@@ -107,12 +110,37 @@ function App() {
     if (!mission) return
 
     try {
+      // Optimistically update the UI
+      const newTask = {
+        id: `temp-${Date.now()}`, // Temporary ID that will be replaced after API call
+        title,
+        difficulty,
+        completed
+      }
+
+      queryClient.setQueryData(['missions'], (oldData: Page<Mission> | undefined) => {
+        if (!oldData) return { content: [], totalPages: 0, totalElements: 0, size: pageSize, number: currentPage, first: true, last: true, empty: true }
+        return {
+          ...oldData,
+          content: oldData.content.map(m => {
+            if (m.id === mission.id) {
+              return {
+                ...m,
+                tasks: [...m.tasks, newTask]
+              }
+            }
+            return m
+          })
+        }
+      })
+
       await missionApi.addTask(selectedMissionId, {
         title,
         difficulty,
         completed
       })
 
+      // Refresh to get the real ID from the server
       queryClient.invalidateQueries({ queryKey: ['missions'] })
       
       toast({
@@ -122,6 +150,8 @@ function App() {
           : "New objective has been added to the mission.",
       })
     } catch (error) {
+      // Revert optimistic update
+      queryClient.invalidateQueries({ queryKey: ['missions'] })
       toast({
         title: "Failed to Add Objective",
         description: "There was an error adding the objective. Please try again.",
@@ -138,12 +168,35 @@ function App() {
     if (!task) return
 
     try {
+      // Optimistically update the UI
+      queryClient.setQueryData(['missions'], (oldData: Page<Mission> | undefined) => {
+        if (!oldData) return { content: [], totalPages: 0, totalElements: 0, size: pageSize, number: currentPage, first: true, last: true, empty: true }
+        return {
+          ...oldData,
+          content: oldData.content.map(m => {
+            if (m.id === missionId) {
+              return {
+                ...m,
+                tasks: m.tasks.map(t =>
+                  t.id === taskId
+                    ? { ...t, completed: !t.completed }
+                    : t
+                )
+              }
+            }
+            return m
+          })
+        }
+      })
+
       await missionApi.updateTask(missionId, taskId, {
+        title: task.title,
+        difficulty: task.difficulty,
         completed: !task.completed
       })
-      
-      queryClient.invalidateQueries({ queryKey: ['missions'] })
     } catch (error) {
+      // Revert optimistic update
+      queryClient.invalidateQueries({ queryKey: ['missions'] })
       toast({
         title: "Failed to Update Objective",
         description: "There was an error updating the objective status. Please try again.",
@@ -153,15 +206,36 @@ function App() {
   }
 
   const deleteObjective = async (missionId: string, taskId: string) => {
+    const mission = missions.find(m => m.id === missionId)
+    if (!mission) return
+
     try {
+      // Optimistically update the UI
+      queryClient.setQueryData(['missions'], (oldData: Page<Mission> | undefined) => {
+        if (!oldData) return { content: [], totalPages: 0, totalElements: 0, size: pageSize, number: currentPage, first: true, last: true, empty: true }
+        return {
+          ...oldData,
+          content: oldData.content.map(m => {
+            if (m.id === missionId) {
+              return {
+                ...m,
+                tasks: m.tasks.filter(t => t.id !== taskId)
+              }
+            }
+            return m
+          })
+        }
+      })
+
       await missionApi.deleteTask(missionId, taskId)
-      queryClient.invalidateQueries({ queryKey: ['missions'] })
       
       toast({
         title: "Objective Removed",
         description: "The objective has been removed from the mission.",
       })
     } catch (error) {
+      // Revert optimistic update
+      queryClient.invalidateQueries({ queryKey: ['missions'] })
       toast({
         title: "Failed to Remove Objective",
         description: "There was an error removing the objective. Please try again.",
@@ -171,19 +245,92 @@ function App() {
   }
 
   const updateObjectiveDifficulty = async (missionId: string, taskId: string, difficulty: number) => {
+    const mission = missions.find(m => m.id === missionId)
+    if (!mission) return
+
+    const task = mission.tasks.find(t => t.id === taskId)
+    if (!task) return
+
     try {
-      await missionApi.updateTask(missionId, taskId, { difficulty })
-      queryClient.invalidateQueries({ queryKey: ['missions'] })
-      
-      toast({
-        title: "Difficulty Updated",
-        description: "Objective difficulty has been modified.",
+      // Optimistically update the UI
+      queryClient.setQueryData(['missions'], (oldData: Page<Mission> | undefined) => {
+        if (!oldData) return { content: [], totalPages: 0, totalElements: 0, size: pageSize, number: currentPage, first: true, last: true, empty: true }
+        return {
+          ...oldData,
+          content: oldData.content.map(m => {
+            if (m.id === missionId) {
+              return {
+                ...m,
+                tasks: m.tasks.map(t =>
+                  t.id === taskId
+                    ? { ...t, difficulty }
+                    : t
+                )
+              }
+            }
+            return m
+          })
+        }
+      })
+
+      await missionApi.updateTask(missionId, taskId, {
+        title: task.title,
+        difficulty,
+        completed: task.completed
       })
     } catch (error) {
+      // Revert optimistic update
+      queryClient.invalidateQueries({ queryKey: ['missions'] })
       toast({
         title: "Failed to Update Difficulty",
         description: "There was an error updating the objective difficulty. Please try again.",
         variant: "destructive"
+      })
+    }
+  }
+
+  const handleEditObjective = (task: Task) => {
+    setSelectedObjective(task)
+    setEditObjectiveOpen(true)
+  }
+
+  const handleUpdateObjective = async (taskId: string, title: string, difficulty: number) => {
+    const mission = missions.find(m => m.tasks.some(t => t.id === taskId))
+    if (!mission) return
+
+    try {
+      // Optimistically update the UI
+      queryClient.setQueryData(['missions'], (oldData: Page<Mission> | undefined) => {
+        if (!oldData) return { content: [], totalPages: 0, totalElements: 0, size: pageSize, number: currentPage, first: true, last: true, empty: true }
+        return {
+          ...oldData,
+          content: oldData.content.map(m => {
+            if (m.id === mission.id) {
+              return {
+                ...m,
+                tasks: m.tasks.map(t =>
+                  t.id === taskId
+                    ? { ...t, title, difficulty }
+                    : t
+                )
+              }
+            }
+            return m
+          })
+        }
+      })
+
+      await missionApi.updateTask(mission.id, taskId, {
+        title,
+        difficulty,
+        completed: selectedObjective?.completed || false
+      })
+    } catch (error) {
+      queryClient.invalidateQueries({ queryKey: ['missions'] })
+      toast({
+        title: 'Error',
+        description: 'Failed to update objective. Please try again.',
+        variant: 'destructive',
       })
     }
   }
@@ -342,6 +489,7 @@ function App() {
                     onUpdateTaskDifficulty={(taskId, difficulty) =>
                       updateObjectiveDifficulty(mission.id, taskId, difficulty)
                     }
+                    onEditTask={handleEditObjective}
                     onDelete={() => deleteMission(mission.id)}
                     onEdit={() => handleEditMission(mission)}
                     onClick={() => handleMissionCardClick(mission)}
@@ -396,9 +544,18 @@ function App() {
           mission={selectedMissionForEdit}
           onSubmit={handleUpdateMission}
         />
+        <EditObjectiveDialog
+          open={editObjectiveOpen}
+          onOpenChange={setEditObjectiveOpen}
+          task={selectedObjective}
+          onSubmit={handleUpdateObjective}
+        />
         <MissionDetailsPopup
           mission={selectedMissionForDetails}
           onClose={() => setSelectedMissionForDetails(null)}
+          onToggleTask={(taskId) => toggleObjective(selectedMissionForDetails?.id || '', taskId)}
+          onEditTask={handleEditObjective}
+          onDeleteTask={(taskId) => deleteObjective(selectedMissionForDetails?.id || '', taskId)}
         />
       </div>
     </div>

@@ -1,9 +1,9 @@
 import React from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { X, Star, StarOff } from 'lucide-react'
-import { Mission } from '@/lib/api'
-import { useQuery } from '@tanstack/react-query'
+import { X, Star, StarOff, Pencil, Trash2 } from 'lucide-react'
+import { Mission, Task } from '@/lib/api'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { missionApi } from '@/lib/api'
 import { useVirtualizer } from '@tanstack/react-virtual'
 
@@ -11,6 +11,8 @@ interface MissionDetailsPopupProps {
   mission: Mission | null
   onClose: () => void
   onToggleTask: (taskId: string) => void
+  onEditTask: (task: Task) => void
+  onDeleteTask: (taskId: string) => void
 }
 
 // Add difficulty level descriptions
@@ -59,16 +61,18 @@ const MissionDetailsPopup: React.FC<MissionDetailsPopupProps> = ({
   mission,
   onClose,
   onToggleTask,
+  onEditTask,
+  onDeleteTask,
 }) => {
   if (!mission) return null
 
   // Subscribe to mission updates
   const { data: missionsPage } = useQuery({
     queryKey: ['missions'],
-    select: (data: any) => {
-      // Handle both paginated and non-paginated responses
-      const missions = data?.content || data || []
-      return Array.isArray(missions) ? missions.find(m => m.id === mission.id) : null
+    queryFn: () => missionApi.getAllMissions({ page: 0, size: 100 }), // Add the missing queryFn
+    select: (data) => {
+      const missions = data?.content || []
+      return missions.find(m => m.id === mission.id)
     },
     enabled: !!mission
   })
@@ -89,33 +93,23 @@ const MissionDetailsPopup: React.FC<MissionDetailsPopupProps> = ({
   const rowVirtualizer = useVirtualizer({
     count: currentMission.tasks.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 64, // Estimated height of each task row
-    overscan: 5, // Number of items to render outside the visible area
+    estimateSize: () => 80, // Increased from 64 to give more vertical space
+    overscan: 5,
   })
 
   return (
-    <>
-      <div 
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[150]"
-        onClick={onClose}
-      />
-      <div className="fixed left-[50%] top-[50%] w-[90vw] max-w-[600px] translate-x-[-50%] translate-y-[-50%] z-[150]">
-        <div className="tactical-border bg-card/95 backdrop-blur-sm">
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent className="fixed left-[50%] top-[50%] w-[95vw] max-w-[800px] translate-x-[-50%] translate-y-[-50%] z-[150] border-none bg-background shadow-lg">
+        <div className="tactical-border">
           <div className="tactical-content p-6">
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <h2 className="text-2xl font-bold text-primary mb-2">{currentMission.title}</h2>
-                <p className="text-muted-foreground">{currentMission.description}</p>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onClose}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold text-primary mb-2">
+                {currentMission.title}
+              </DialogTitle>
+              <DialogDescription className="text-muted-foreground">
+                {currentMission.description}
+              </DialogDescription>
+            </DialogHeader>
 
             <div className="mb-6">
               <div className="text-sm text-muted-foreground mb-2">Mission Progress</div>
@@ -157,25 +151,49 @@ const MissionDetailsPopup: React.FC<MissionDetailsPopupProps> = ({
                           transform: `translateY(${virtualRow.start}px)`,
                         }}
                       >
-                        <div className="flex items-center justify-between p-3 rounded-md bg-secondary/50 mb-2">
-                          <div className="flex items-center gap-3">
+                        <div className="flex items-start justify-between p-3 rounded-md bg-secondary/50 mb-2 min-h-[64px] gap-4">
+                          <div className="flex items-start gap-3 min-w-0 flex-1">
                             <input
                               type="checkbox"
                               checked={task.completed}
                               onChange={() => onToggleTask(task.id)}
-                              className="w-4 h-4 rounded border-gray-300"
+                              className="w-4 h-4 rounded border-gray-300 flex-shrink-0 mt-1"
                             />
-                            <span className={`transition-all duration-200 ${task.completed ? 'line-through text-muted-foreground' : ''}`}>
+                            <span className={`transition-all duration-200 ${task.completed ? 'line-through text-muted-foreground' : ''} break-words`}>
                               {task.title}
                             </span>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-start gap-2 flex-shrink-0 ml-4">
                             <div className="flex gap-0.5">
                               {renderDifficultyStars(task.difficulty)}
                             </div>
-                            <span className="text-sm text-muted-foreground ml-2">
+                            <span className="text-sm text-muted-foreground ml-2 whitespace-nowrap">
                               ({getDifficultyLabel(task.difficulty)})
                             </span>
+                            <div className="flex gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-muted-foreground hover:text-foreground"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onEditTask(task);
+                                }}
+                              >
+                                <Pencil className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-destructive hover:text-destructive/90"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onDeleteTask(task.id);
+                                }}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -195,8 +213,8 @@ const MissionDetailsPopup: React.FC<MissionDetailsPopupProps> = ({
             </div>
           </div>
         </div>
-      </div>
-    </>
+      </DialogContent>
+    </Dialog>
   )
 }
 

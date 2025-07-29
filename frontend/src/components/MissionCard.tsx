@@ -10,6 +10,7 @@ interface MissionCardProps {
   onToggleTask: (taskId: string) => void;
   onDeleteTask: (taskId: string) => void;
   onUpdateTaskDifficulty: (taskId: string, difficulty: number) => void;
+  onEditTask: (task: Task) => void;
   onDelete: () => void;
   onEdit: () => void;
   onClick: () => void;
@@ -38,6 +39,7 @@ const MissionCard: React.FC<MissionCardProps> = ({
   onToggleTask,
   onDeleteTask,
   onUpdateTaskDifficulty,
+  onEditTask,
   onDelete,
   onEdit,
   onClick,
@@ -161,6 +163,17 @@ const MissionCard: React.FC<MissionCardProps> = ({
                 <div className="flex gap-0.5">
                   {renderDifficultyStars(task.id, task.difficulty)}
                 </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-muted-foreground hover:text-foreground"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEditTask(task);
+                  }}
+                >
+                  <Pencil className="h-3 w-3" />
+                </Button>
                 <Button
                   variant="ghost"
                   size="icon"
