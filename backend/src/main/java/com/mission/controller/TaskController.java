@@ -20,7 +20,7 @@ public class TaskController {
     }
 
     @PostMapping
-    public ResponseEntity<Task> createTask(@PathVariable Long missionId, @RequestBody Task task) {
+    public ResponseEntity<Task> createTask(@PathVariable Long missionId, @jakarta.validation.Valid @RequestBody Task task) {
         Task createdTask = taskService.createTask(missionId, task);
         return ResponseEntity.ok(createdTask);
     }
@@ -38,7 +38,7 @@ public class TaskController {
     }
 
     @PutMapping("/{taskId}")
-    public ResponseEntity<Task> updateTask(@PathVariable Long taskId, @RequestBody Task taskDetails) {
+    public ResponseEntity<Task> updateTask(@PathVariable Long taskId, @jakarta.validation.Valid @RequestBody Task taskDetails) {
         Task updatedTask = taskService.updateTask(taskId, taskDetails);
         return ResponseEntity.ok(updatedTask);
     }

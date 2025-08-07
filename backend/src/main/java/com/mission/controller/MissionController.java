@@ -42,13 +42,13 @@ public class MissionController {
     }
 
     @PostMapping("/operation/{operationId}")
-    public ResponseEntity<Mission> createMission(@PathVariable Long operationId, @RequestBody Mission mission) {
+    public ResponseEntity<Mission> createMission(@PathVariable Long operationId, @jakarta.validation.Valid @RequestBody Mission mission) {
         Mission createdMission = missionService.createMission(operationId, mission);
         return ResponseEntity.ok(createdMission);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Mission> updateMission(@PathVariable Long id, @RequestBody Mission mission) {
+    public ResponseEntity<Mission> updateMission(@PathVariable Long id, @jakarta.validation.Valid @RequestBody Mission mission) {
         Mission updatedMission = missionService.updateMission(id, mission);
         return ResponseEntity.ok(updatedMission);
     }

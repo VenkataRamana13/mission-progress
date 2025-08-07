@@ -15,7 +15,11 @@ public class Mission {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @jakarta.validation.constraints.NotBlank(message = "Mission title must not be blank")
+    @jakarta.validation.constraints.Size(max = 255, message = "Mission title must be at most 255 characters")
     private String title;
+
+    @jakarta.validation.constraints.Size(max = 2048, message = "Mission description must be at most 2048 characters")
     private String description;
     private Boolean completed = false;
     private LocalDateTime createdAt = LocalDateTime.now();

@@ -11,7 +11,13 @@ public class Task {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @jakarta.validation.constraints.NotBlank(message = "Task title must not be blank")
+    @jakarta.validation.constraints.Size(max = 255, message = "Task title must be at most 255 characters")
     private String title;
+
+    @jakarta.validation.constraints.NotNull(message = "Task difficulty must be provided")
+    @jakarta.validation.constraints.Min(value = 1, message = "Task difficulty must be at least 1")
+    @jakarta.validation.constraints.Max(value = 10, message = "Task difficulty must be at most 10")
     private Integer difficulty;
     private Boolean completed = false;
 

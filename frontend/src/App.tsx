@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Plus, Shield, Target, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Plus, Shield, Target } from 'lucide-react'
+import PaginationControls from '@/components/PaginationControls'
+import { Skeleton } from '@/components/ui/skeleton'
 import MissionCard from '@/components/MissionCard'
 import CreateMissionDialog from '@/components/CreateMissionDialog'
 import CreateObjectiveDialog from '@/components/CreateTaskDialog'
@@ -387,8 +389,12 @@ function App() {
   }
 
   if (isLoading) return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/80 flex items-center justify-center">
-      <div className="text-primary">Loading missions...</div>
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/80 flex items-center justify-center p-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-5xl">
+        {Array.from({ length: 9 }).map((_, idx) => (
+          <Skeleton key={idx} className="h-48 w-full rounded-xl bg-card/50" />
+        ))}
+      </div>
     </div>
   )
 
@@ -497,32 +503,12 @@ function App() {
                 ))}
               </div>
 
-              {/* Pagination Controls */}
-              {totalPages > 1 && (
-                <div className="flex justify-center items-center gap-4 mt-8">
-                  <Button
-                    variant="outline"
-                    onClick={handlePrevPage}
-                    disabled={currentPage === 0}
-                    className="flex items-center gap-2"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                    Previous
-                  </Button>
-                  <span className="text-muted-foreground">
-                    Page {currentPage + 1} of {totalPages}
-                  </span>
-                  <Button
-                    variant="outline"
-                    onClick={handleNextPage}
-                    disabled={currentPage + 1 >= totalPages}
-                    className="flex items-center gap-2"
-                  >
-                    Next
-                    <ChevronRight className="w-4 h-4" />
-                  </Button>
-                </div>
-              )}
+              <PaginationControls
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onNext={handleNextPage}
+                onPrev={handlePrevPage}
+              />
             </>
           )}
         </div>
